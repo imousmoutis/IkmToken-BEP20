@@ -2,12 +2,13 @@
 pragma solidity ^0.8.9;
 
 import "./Ownable.sol";
+import "./Stakeable.sol";
 
 /**
  * @notice The smart contract for the IkmToken which is following the BEP20 interface.
  * @author imousmoutis
  */
-contract IkmToken is Ownable {
+contract IkmToken is Ownable, Stakeable {
 
     //the token required variables
     string private _name;
@@ -290,6 +291,29 @@ contract IkmToken is Ownable {
     function decreaseAllowance(address spender, uint256 amount) public returns (bool) {
         _approve(msg.sender, spender, _allowances[msg.sender][spender] - amount);
         return true;
+    }
+
+    /**
+     * @notice This function is called to stake the provided amount to the sender and burn it from their balance..
+     *
+     * Events
+     * - Staked
+     * - Transfer
+     *
+     * Requires
+     * - Amount to be staked should be more than zero and should not exceed the sender's balance.
+     * - Tokens cannot be staked for the zero address.
+     */
+    function stake(uint256 amount) public {
+        require(amount < _balances[msg.sender], "The amount to be staked cannot exceed your current balance.");
+
+        _stake(amount);
+        _burn(msg.sender, amount);
+    }
+
+    function withdrawStake(uint256 amount, uint256 index) public {
+        uint256 amountToWithdraw = _withdrawStake(amount, index);
+        _mint(msg.sender, amountToWithdraw);
     }
 
 }
